@@ -1,3 +1,2 @@
-pandas
-numpy
-smolagents[litellm]
+ollama
+smolagents
