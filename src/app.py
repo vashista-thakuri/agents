@@ -2,6 +2,7 @@ import ollama
 import requests
 import yaml
 import os
+import pyttsx3
 
 config_path = os.path.join(os.path.dirname(__file__), "config.yaml")
 with open(config_path, "r") as f:
@@ -55,7 +56,7 @@ def summarize_search_results(results_text):
             {
                 'role': 'system',
                 'content': (
-                    "Summarize the following web search results in 2-3 sentences. "
+                    "Summarize the following web search results in 3-4 sentences. "
                     "Do not mention that these are search results, just provide a concise summary."
                 )
             },
@@ -75,11 +76,17 @@ def clean_response(text):
     return text.strip()
 
 def main():
+    engine = pyttsx3.init()
+    voices = engine.getProperty('voices')
+    for voice in voices:
+        if "female" in voice.name.lower() or "zira" in voice.name.lower():
+            engine.setProperty('voice', voice.id)
+            break
     print("What do you want to know? Ask me anything or Type 'exit' to quit.")
     while True:
         prompt = input("\nMe: ")
         if prompt.lower() == 'exit':
-            print("\nGoodbye talk to you later!")
+            print("\nGoodbye, talk to you later!")
             break
 
         if "search" in prompt.lower() or "look up" in prompt.lower():
@@ -98,7 +105,7 @@ def main():
                 {
                     'role': 'system',
                     'content': (
-                        "You are an assistant named Zema from Darjeeling, India. "
+                        "You are an assistant named Zema from Darjeeling. "
                         "Do NOT mention your name or origin unless the user specifically asks 'Who are you?' or 'Where are you from?'. "
                         "For all other questions, answer directly and do not introduce yourself."
                     )
@@ -110,7 +117,9 @@ def main():
             ]
         )
         cleaned = clean_response(response["message"]["content"])
-        print("Assistent:", cleaned)
+        print("Zema:", cleaned)
+        engine.say(cleaned)
+        engine.runAndWait()
 
 if __name__ == "__main__":
     main()

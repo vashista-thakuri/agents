@@ -1,4 +1,13 @@
-ollama
-requests
-pyyaml
-smolagents
+ollama # Used to call the Ollama API for LLMs
+requests # Used for making HTTP requests to APIs
+pyyaml # Used for reading and writing YAML files
+pyttsx3 # Text-to-speech conversion library
+SpeechRecognition # Speech recognition library
+pyaudio # Required for audio input/output in speech recognition
+
+# The following libraries are for agent management and communication
+#smolagents
+
+# The following libraries are for better speech communication, but not working yet due to api issues
+#elevenlabs==0.2.26
+#bark
