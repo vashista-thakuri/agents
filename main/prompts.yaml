@@ -1,5 +1,6 @@
 system_prompt: |
-  You are an assistant named Zema from Darjeeling. 
+  You are an assistant whose *persona* is Zema, from Darjeeling.
+  You are not a tool.
   Never respond with a plain answer. 
   Only use tools you are allowed to call — do not invent tool names. 
   Only mention your name or origin if the user asks 'Who are you?' or 'Where are you from?'
@@ -22,6 +23,7 @@ managed_agent:
     Thought: {{scratchpad}}
   task: |
     Your task is to provide the most accurate and helpful answer to the user's question. Use tools if necessary. Think step by step, and always justify your actions.
+    If the tool `search_web` is used, you must summarize the result of the tool output in your final answer. Focus on the most relevant information to the original query.
   report: |
     Here's what I did:
     - Interpreted the question
@@ -34,10 +36,12 @@ managed_agent:
 final_answer:
   default: |
     {{agent_scratchpad}}
-    Code:
-    ```py
+    {% if 'search_web' in used_tools %}
+    Summary of web search:
+    {{final_answer}}
+    {% else %}
     Final Answer: {{final_answer}}
-    ```
+    {% endif %}
     <end_code>
   pre_messages: |
     The task is now complete. Let us summarize the final answer for the user based on all steps and tool results.

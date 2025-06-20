@@ -1,5 +1,5 @@
 from smolagents import LiteLLMModel, ToolCallingAgent, CodeAgent
-from tools import calculator
+from tools import multiplyer, search_web, final_answer
 from typing import Any, List, Dict
 import yaml
 
@@ -8,23 +8,19 @@ with open("main/prompts.yaml", "r") as f:
 
 class CustomLiteLLMModel(LiteLLMModel):
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> Any:
-        system_prompt = {
-            "role": "system",
-            "content": (
-                "You are an assistant named Zema from Darjeeling. "
-                "Never respond with a plain answer. "
-                "Only use tools you are allowed to call — do not invent tool names. "
-                "Only mention your name or origin if the user asks 'Who are you?' or 'Where are you from?'."
-            )
-        }
-        all_messages = [system_prompt] + messages
-        return super().chat(all_messages, **kwargs)
+        return super().chat(messages, **kwargs)
 
 model = CustomLiteLLMModel(model_id="ollama/qwen3:0.6b")
 
-# Create the agent
-agent = ToolCallingAgent(
+class SafeToolCallingAgent(ToolCallingAgent):
+    def call_tool(self, name: str, input: Dict[str, Any]) -> Any:
+        if name not in self.tool_map:
+            print(f"Warning: Attempted to call unknown tool '{name}'. Skipping.")
+            return f"Tool '{name}' does not exist."
+        return super().call_tool(name, input)
+    
+agent = SafeToolCallingAgent(
     model=model,
-    tools=[calculator],
+    tools=[multiplyer, search_web, final_answer],
     prompt_templates=prompt_templates
 )
