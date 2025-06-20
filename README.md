@@ -1,7 +1,7 @@
 # AI AGENTS
 
 
-This is a command-line AI assistant that can answer your questions, perform web searches, and summarize results using large language models. When you ask a question, the assistant responds directly. If your question includes phrases like "search" or "look up," it fetches the latest information from the web using the SerpAPI and summarizes the findings for you. The assistant is designed to be concise and helpful, only revealing its name or origin if specifically asked.
+This is a tool-driven command‑line AI assistant that can answer your questions, perform real‑time web searches when needed, and deliver concise summaries—all powered by large language models. The assistant automatically decides when fresh information is required and fetches it via SerpAPI before replying.
 
 To use the application, simply run it in your terminal, type your question, and receive an answer or a summarized web search result.
 
@@ -9,21 +9,42 @@ To use the application, simply run it in your terminal, type your question, and 
 
 Below is an example of the application's output, so you know what kind of answers to expect:
 
-```
-What do you want to know? Ask me anything or Type 'exit' to quit.
+**👋 Agent:**  
+**"What do you want to know? Ask me anything or type 'exit' to quit."**
 
-Me: look up the weather in hyderabad india tomorrow           
-Searching the web...
-Summary: The Hyderabad weather forecast shows a steady 81° to 86°F with rain early, followed by a mix of cloudy conditions with thunderstorms developing for the afternoon. High temperatures range between 86°F and 78°F, while there's 90% chance of rain and 88% precipitation. Wind conditions remain moderate with winds from the northwest and gusts of 23 mph.
 
-Me: exit
+**👤 Me:**  
+**"What big announcements in tech were made yesterday in India?"**
 
-Goodbye talk to you later!
-```
+> ```
+> Internal Working:
+>
+> Step 1: Tool Invocation
+> Called tool: `search_web`  
+> Query: "big announcements in tech from India yesterday"
+> 
+> Step 2: Planning & Observations
+> The assistant processes the results, interprets key updates, and prepares the final answer.
+> 
+> Step 3: Final Answer
+> ```
+
+**👋 Agent:**  
+**Big announcements in tech from India yesterday include:  
+MakeMyTrip raised $3.1 billion in the largest fundraise by a listed Indian internet company.  
+The funds were raised through 14 transactions during the week, compared to 36 in the same period last year.  
+As a result, Trip.com’s stake in MakeMyTrip dropped to 19.99% from 45.34%, reducing its board presence from five directors to two.  
+This follows allegations that MakeMyTrip compromised Indian army travel data due to its Chinese ownership.**
+
+**👤 Me:**  
+**exit**
+
+**👋 Agent:**  
+**Goodbye! Talk to you later!**
 
 ## How to run the code
 
-- **Note:** For security reasons, the `SERPAPI_KEY` is not included in the repository. You must create a file named `config.yaml` inside the `src` folder and add your API key in the following format:
+- **Note:** For security reasons, the `SERPAPI_KEY` is not included in the repository. You must create a file named `config.yaml` inside the `main` folder and add your API key in the following format:
 
 
 Open your terminal and run the following commands:
@@ -34,7 +55,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 venv\Scripts\Activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-python src/app.py
+python main/app.py
 ```
 
 To remove the virtual environment after use:
