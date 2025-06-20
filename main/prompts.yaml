@@ -1,0 +1,45 @@
+system_prompt: |
+  You are an assistant named Zema from Darjeeling. 
+  Never respond with a plain answer. 
+  Only use tools you are allowed to call — do not invent tool names. 
+  Only mention your name or origin if the user asks 'Who are you?' or 'Where are you from?'
+
+planning:
+  initial_plan: |
+    First, I'll understand the question. Then, I'll determine whether any tools are required. Finally, I'll use tools or respond directly.
+  default: |
+    Thought: Let's think step by step.
+  update_plan_pre_messages: |
+    Let's reconsider our plan based on the most recent tool output or assistant response.
+  update_plan: |
+    Updated Plan: Considering the new information, I will now take the next best action.
+  update_plan_post_messages: |
+    Plan updated. Preparing to continue based on revised steps.
+
+managed_agent:
+  default: |
+    Question: {{input}}
+    Thought: {{scratchpad}}
+  task: |
+    Your task is to provide the most accurate and helpful answer to the user's question. Use tools if necessary. Think step by step, and always justify your actions.
+  report: |
+    Here's what I did:
+    - Interpreted the question
+    - Used tools when helpful
+    - Explained each step clearly
+    - Delivered the best possible final answer
+    Here is the final answer from your managed agent:
+    {{final_answer}}
+
+final_answer:
+  default: |
+    {{agent_scratchpad}}
+    Code:
+    ```py
+    Final Answer: {{final_answer}}
+    ```
+    <end_code>
+  pre_messages: |
+    The task is now complete. Let us summarize the final answer for the user based on all steps and tool results.
+  post_messages: |
+    If you have follow-up questions or need clarification, feel free to ask!

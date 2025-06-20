@@ -13,5 +13,3 @@ def calculator(a: int, b: int) -> int:
         int: The product of a and b.
     """
     return a * b
-
-print(calculator.description)
