@@ -7,14 +7,8 @@ pyaudio # Required for audio input/output in speech recognition
 
 # The following libraries are for agent management and communication
 smolagents
-markdownify
-requests
-duckduckgo_search
 smolagents[tool]
 smolagents[litellm]
-smolagents[final_answer]
-smolagents[ToolChatAgent]
-wikipedia
 llama-index
 
 # The following libraries are for better speech communication, but not working yet due to api issues
