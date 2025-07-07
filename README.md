@@ -47,12 +47,24 @@ This follows allegations that MakeMyTrip compromised Indian army travel data due
 - **Note:** For security reasons, the `SERPAPI_KEY` is not included in the repository. You must create a file named `config.yaml` inside the `main` folder and add your API key in the following format:
 
 
+**Note:** Make sure Ollama is installed in you system and pull the "**qwen3:0.6b**" model.
+
 Open your terminal and run the following commands:
 
+Powershell:
 ```
 python -m venv venv
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 venv\Scripts\Activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python main/app.py
+```
+
+Terminal:
+```
+python3 -m venv venv
+source venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 python main/app.py
