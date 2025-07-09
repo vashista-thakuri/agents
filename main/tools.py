@@ -8,6 +8,11 @@ from typing import Any
 import yaml
 from urllib.parse import urljoin, urlparse
 import re
+import pyautogui
+import pygetwindow as gw
+import pyperclip
+import time
+import os
 
 @tool
 def think(thought: str) -> str:
@@ -39,7 +44,7 @@ def multiply(a: float, b: float) -> float:
 @tool
 def calculator(expression: str) -> float:
     """
-    Evaluates arithmetic expressions with natural language support.
+    Evaluates arithmetic expressions (numbers and operators only).
 
     Args:
         expression (str): A valid arithmetic expression, e.g., '2 + 3 * 4'.
@@ -47,22 +52,8 @@ def calculator(expression: str) -> float:
     Returns:
         float: The result of the evaluated expression.
     """
-    replacements = {
-        'into': '*',
-        'times': '*',
-        'plus': '+',
-        'minus': '-',
-        'divided by': '/',
-        'divide by': '/',
-        'divide': '/',
-        'multiplied by': '*',
-        'multiplied': '*',
-        'x': '*',
-    }
-    expr = expression.lower()
-    for word, op in replacements.items():
-        expr = re.sub(rf'\\b{word}\\b', op, expr)
-    cleaned = re.findall(r'[\d\.\+\-\*/\(\) ]+', expr)
+    # Only allow digits, decimal points, arithmetic operators, parentheses, and spaces
+    cleaned = re.findall(r'[\d\.\+\-\*/\(\) ]+', expression)
     safe_expr = ''.join(cleaned)
     try:
         return eval(safe_expr, {"__builtins__": None}, math.__dict__)
@@ -83,76 +74,40 @@ def final_answer(response: Any) -> str:
     return str(response)
 
 @tool
-def get_news(query: str) -> str:
+def get_news() -> str:
     """
-    Searches the web using SerpAPI, visits the top result page, extracts up to 5
-    article links from that page, fetches their contents, and returns a summary
-    of each.
-
-    Args:
-        query (str): The search query.
-
+    Fetches the top news headlines from India Today using SerpAPI.
+    This function uses SerpAPI to search Google News limited to India Today articles.
+    It returns the titles and links of the top 5 headlines.
+    
     Returns:
-        str: Summaries of top 5 articles found within the top result page.
+        str: A formatted string with top 5 headlines from India Today or an error message.
     """
-    def extract_article_text(url: str) -> str:
-        try:
-            page = requests.get(url, timeout=10, verify=False)
-            soup = BeautifulSoup(page.content, "html.parser")
-            candidates = soup.find_all("article")
-            if not candidates:
-                candidates = soup.find_all("main")
-            if not candidates:
-                candidates = sorted(soup.find_all("div"), key=lambda d: len(d.find_all("p")), reverse=True)
-
-            for block in candidates:
-                paragraphs = block.find_all("p")
-                if len(paragraphs) >= 3:
-                    text = "\n".join(p.get_text().strip() for p in paragraphs if p.get_text().strip())
-                    return text[:800]
-            return "No substantial content found."
-        except Exception as e:
-            return f"Error fetching article: {e}"
+    with open("main/config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+    serp_api_key = config["SERPAPI_KEY"]
+    params = {
+        "q": "site:indiatoday.in",
+        "engine": "google_news",
+        "hl": "en",
+        "gl": "in",
+        "api_key": serp_api_key
+    }
 
     try:
-        with open("main/config.yaml", "r") as f:
-            config = yaml.safe_load(f)
-        api_key = config["SERPAPI_KEY"]
-
-        params = {
-            "q": query,
-            "api_key": api_key,
-            "engine": "google",
-        }
-        response = requests.get("https://serpapi.com/search", timeout=10, params=params, verify=False)
+        response = requests.get("https://serpapi.com/search", params=params)
+        response.raise_for_status()
         data = response.json()
-        top_url = data["organic_results"][0]["link"]
 
-        page = requests.get(top_url, timeout=10, verify=False)
-        soup = BeautifulSoup(page.content, "html.parser")
+        news_results = data.get("news_results", [])
+        if not news_results:
+            return "No India Today headlines found at the moment."
 
-        base_url = "{uri.scheme}://{uri.netloc}".format(uri=urlparse(top_url))
-        links = soup.find_all("a", href=True)
-        article_urls = []
+        headlines = [f"{news['title']} - {news['link']}" for news in news_results[:5]]
+        return "\n".join(headlines)
 
-        for a in links:
-            href = a["href"]
-            if any(keyword in href.lower() for keyword in ["article", "news", "story", "202", "2024", "2025"]):
-                full_url = urljoin(base_url, href)
-                if full_url not in article_urls and base_url in full_url:
-                    article_urls.append(full_url)
-            if len(article_urls) >= 5:
-                break
-
-        summaries = []
-        for idx, url in enumerate(article_urls):
-            text = extract_article_text(url)
-            summaries.append(f"🔹 Article {idx+1} - {url}\n{text.strip()}\n")
-
-        return "\n".join(summaries) if summaries else "No internal articles found."
-
-    except Exception as e:
-        return f"Search error: {e}"
+    except requests.exceptions.RequestException as e:
+        return f"Error fetching India Today headlines: {str(e)}"
     
 @tool
 def search_web(query: str) -> str:
@@ -248,10 +203,69 @@ def get_date() -> str:
     """
     Retrieves the current system date.
 
-    Args: 
-        This tool does not require any arguments.
+    Args:
+        None
 
     Returns:
         str: Today's date in ISO format (YYYY-MM-DD).
     """
     return date.today().isoformat()
+
+@tool
+def write_note_in_notepadpp(note: str) -> str:
+    """
+    Opens Notepad++, writes the given note, and saves it to the user's Desktop as note.txt.
+
+    Args:
+        note (str): The note content to write.
+
+    Returns:
+        str: Success message or error.
+    """
+    try:
+        # Path to Notepad++ (update if installed elsewhere)
+        npp_path = r"C:\Windows\notepad.exe"
+        if not os.path.exists(npp_path):
+            return "Notepad not found at the default location. Please update the path."
+        subprocess.Popen([npp_path])
+        time.sleep(2)  # Wait for Notepad++ to open
+        # Focus Notepad++ window
+        windows = gw.getWindowsWithTitle('Notepad')
+        if not windows:
+            return "Could not find Notepad window."
+        windows[0].activate()
+        time.sleep(0.5)
+        # Use clipboard for reliability
+        pyperclip.copy(note)
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.hotkey('ctrl', 'v')
+        # Save As (Ctrl+Shift+S)
+        pyautogui.hotkey('ctrl', 'shift', 's')
+        time.sleep(1)
+        desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
+        filename = os.path.join(desktop, 'note.txt')
+        pyperclip.copy(filename)
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.hotkey('ctrl', 'v')
+        pyautogui.press('enter')
+        time.sleep(1)
+        return f"Note written and saved to {filename}"
+    except Exception as e:
+        return f"Error: {e}"
+
+@tool
+def run_command(command: str) -> str:
+    """
+    Runs a simple command line instruction and returns its output or error.
+
+    Args:
+        command (str): The command line instruction to execute.
+
+    Returns:
+        str: The output from the command or an error message.
+    """
+    try:
+        result = subprocess.run(command, shell=True, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.stdout.strip() if result.stdout else result.stderr.strip()
+    except subprocess.CalledProcessError as e:
+        return f"Command error: {e.stderr.strip()}"
