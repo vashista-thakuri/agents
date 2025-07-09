@@ -10,6 +10,19 @@ from urllib.parse import urljoin, urlparse
 import re
 
 @tool
+def think(thought: str) -> str:
+    """
+    Logs internal reasoning or plan before using any other tool.
+
+    Args:
+        thought (str): The internal reasoning or plan to be logged.
+
+    Returns:
+        str: A formatted string representing the internal thought.
+    """
+    return f"💭 Thought: {thought}"
+
+@tool
 def multiply(a: float, b: float) -> float:
     """
     Multiplies two numbers.
@@ -26,7 +39,7 @@ def multiply(a: float, b: float) -> float:
 @tool
 def calculator(expression: str) -> float:
     """
-    Evaluates a basic arithmetic expression.
+    Evaluates arithmetic expressions with natural language support.
 
     Args:
         expression (str): A valid arithmetic expression, e.g., '2 + 3 * 4'.
