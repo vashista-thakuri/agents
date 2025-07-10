@@ -3,12 +3,11 @@ from tools.final_answer import FinalAnswerTool
 from tools.search_web import SerpAPISearchTool
 from tools.calculator import CalculatorTool
 from tools.wikipedia_search import WikipediaSearchTool
-from tools.print_instruction import PrintReasoningTool
 import yaml
 from typing import Any, List, Dict
 
 # Load prompt templates
-with open("main/prompts.yaml", "r") as f:
+with open("main/prompts.yaml", "r", encoding="utf-8") as f:
     prompt_templates = yaml.safe_load(f)
 
 # Custom Agent that safely calls tools
@@ -17,7 +16,11 @@ class SafeToolCallingAgent(ToolCallingAgent):
         if name not in self.tool_map:
             print(f"Warning: Attempted to call unknown tool '{name}'. Skipping.")
             return f"Tool '{name}' does not exist."
-        return super().call_tool(name, input)
+        
+        tool = self.tool_map[name]
+        required_args = set(tool.inputs.keys())
+        filtered_input = {k: v for k, v in input.items() if k in required_args}
+        return super().call_tool(name, filtered_input)
 
 # Base LLM Model
 class JamesBond(LiteLLMModel):
@@ -34,13 +37,11 @@ final_answer = FinalAnswerTool()
 search_web = SerpAPISearchTool()
 calculator = CalculatorTool()
 wikipedia_search = WikipediaSearchTool()
-print_reasoning = PrintReasoningTool()
 
 # Agent initialization
 agent = SafeToolCallingAgent(
     model=model,
     tools=[
-        print_reasoning,
         wikipedia_search, 
         #search_web, 
         final_answer, 

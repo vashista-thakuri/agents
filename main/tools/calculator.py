@@ -27,11 +27,11 @@ class CalculatorTool(Tool):
             'x': '*',
         }
         expr = expression.lower()
-        # Replace multi-word keys first
+        
         for word in sorted(replacements, key=lambda x: -len(x)):
             op = replacements[word]
             expr = re.sub(rf'\b{re.escape(word)}\b', op, expr)
-        # Remove any characters except numbers, operators, parentheses, and spaces
+        
         cleaned = re.findall(r'[\d\.\+\-\*/\(\) ]+', expr)
         safe_expr = ''.join(cleaned)
         try:
