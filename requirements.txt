@@ -3,7 +3,7 @@ requests # Used for making HTTP requests to APIs
 pyyaml # Used for reading and writing YAML files
 pyttsx3 # Text-to-speech conversion library
 SpeechRecognition # Speech recognition library
-pyaudio # Required for audio input/output in speech recognition
+#pyaudio # Required for audio input/output in speech recognition
 beautifulsoup4 # For parsing HTML and XML documents
 
 # The following libraries are for agent management and communication

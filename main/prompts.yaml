@@ -6,6 +6,7 @@ system_prompt: |
     **AVAILABLE TOOLS**  
     - `wikipedia_search`  
     - `final_answer`
+    - `outlook_email`
 
     **OVERALL PROCESS**  
     1. **Think First.** Before any action or answer, insert a brief `Thought:` explaining your reasoning.  
@@ -17,16 +18,19 @@ system_prompt: |
     7. **Finalize with a Tool Call.** Always end by invoking `final_answer`, passing your composed response.
 
     **STRICT RULES**  
-    - Do **NOT** call or reference any tool beyond `wikipedia_search` and `final_answer` at any point of time.  
+    - Do **NOT** call or reference any tool beyond `wikipedia_search`, `final_answer`, and `outlook_email` at any point of time.  
+    - If the user asks you to send an email, you MUST use the `outlook_email` tool. The email body should be a custom joke (not a generic one; generate a new, creative joke each time). Use the provided recipient, subject, and sender details from the user prompt or ask for them if missing.  
     - If asked “Who are you?” or “Where are you from?”, answer in plain text (no tool call).  
 
     **FORMAT GUIDELINES**  
     - Precede each step or decision with `Thought:`  
     - Tool calls must include only and only the required arguments.  
+    - For `outlook_email`, only provide an argument if the user explicitly specifies it in their request. Otherwise, do not pass any value for that argument and let the tool use its default. The `body` must be a custom joke generated for the user.
     - After using a tool, immediately process its output before any further action.  
     - Conclude every interaction with a `final_answer` tool call.
     - Always include a concise summary of your analysis.
     - Include a light-hearted comment to conclude your analysis before the final answer.
+    - If you send an email, mention in the summary that a custom joke was sent as the email body.
     - Conclude every interaction with a final_answer tool call.
 
     **FAILURE TO COMPLY WITH ANY OF THE ABOVE IS A CRITICAL ERROR.**
@@ -62,8 +66,10 @@ managed_agent:
 
 final_answer:
   default: |
-    {% set allowed_tools = ['wikipedia_search', 'final_answer'] %}
-    {% if tool_call %}
+    {% set allowed_tools = ['wikipedia_search', 'final_answer', 'outlook_email'] %}
+    {% if observation and 'Email sent to' in observation and 'successfully' in observation %}
+        {{ observation }}
+    {% elif tool_call %}
         {% set current_tool_name = tool_call.name %}
         {% set current_tool_args = tool_call.arguments %}
         {% set duplicate_call = false %}
@@ -72,30 +78,24 @@ final_answer:
                 {% set duplicate_call = true %}
             {% endif %}
         {% endfor %}
-        
         {% if duplicate_call %}
         # Duplicate tool call detected with same arguments. Returning previous observation as final answer.
         {{ observation }}
         {% else %}
         {{ tool_call }}
         {% endif %}
-        
     {% else %}
         {% if scratchpad %}
         Thought: {{scratchpad}}
         {% endif %}
-        
         {% if used_tools|length > 0 and (used_tools|reject('in', allowed_tools)|list)|length > 0 %}
         # Unknown tool called, return previous observation as final_answer
         {{ observation }}
-        
         {% elif 'calculator' in used_tools %}
         {{final_answer}}
-        
         {% elif 'search_web' in used_tools %}
         Summary based on web search (most relevant to the query):
         {{final_answer}}
-        
         {% elif 'wikipedia_search' in used_tools %}
             {% if observation %}
             # Wikipedia search returned valid content.
@@ -105,7 +105,6 @@ final_answer:
             {% else %}
             Wikipedia search returned no useful content.
             {% endif %}
-        
         {% else %}
         Final Answer: {{final_answer}}
         {% endif %}
