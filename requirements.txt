@@ -11,6 +11,9 @@ smolagents
 smolagents[tool]
 smolagents[litellm]
 llama-index
+duckduckgo_search
+serpapi
+google-search-results
 
 # The following libraries are for better speech communication, but not working yet due to api issues
 #elevenlabs==0.2.26
