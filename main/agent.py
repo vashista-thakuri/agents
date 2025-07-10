@@ -3,6 +3,7 @@ from tools.final_answer import FinalAnswerTool
 from tools.search_web import SerpAPISearchTool
 from tools.calculator import CalculatorTool
 from tools.wikipedia_search import WikipediaSearchTool
+from tools.print_instruction import PrintReasoningTool
 import yaml
 from typing import Any, List, Dict
 
@@ -33,11 +34,13 @@ final_answer = FinalAnswerTool()
 search_web = SerpAPISearchTool()
 calculator = CalculatorTool()
 wikipedia_search = WikipediaSearchTool()
+print_reasoning = PrintReasoningTool()
 
 # Agent initialization
 agent = SafeToolCallingAgent(
     model=model,
     tools=[
+        print_reasoning,
         wikipedia_search, 
         #search_web, 
         final_answer, 
